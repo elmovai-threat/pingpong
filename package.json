@@ -1,0 +1,14 @@
+{
+  "name": "pingpong",
+  "version": "1.0.0",
+  "description": "Tiny ping/pong web app",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node test/smoke.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "license": "MIT"
+}

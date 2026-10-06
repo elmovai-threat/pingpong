@@ -1,0 +1,38 @@
+name: Build PR
+
+on:
+  workflow_call:
+    inputs:
+      head_repo:
+        required: true
+        type: string
+      head_ref:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork code
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.head_repo }}
+          ref: ${{ inputs.head_ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Upload node_modules as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cache-package
+          path: |
+            node_modules
+            package.json
+            package-lock.json

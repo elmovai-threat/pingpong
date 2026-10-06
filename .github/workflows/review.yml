@@ -1,0 +1,61 @@
+name: Review Command
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  authorize:
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/review')
+    runs-on: ubuntu-latest
+    outputs:
+      head_repo: ${{ steps.pr.outputs.head_repo }}
+      head_ref: ${{ steps.pr.outputs.head_ref }}
+    steps:
+      - name: Check commenter permissions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.payload.comment.user.login,
+            });
+            if (!['admin', 'write'].includes(perm.permission)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `@${context.payload.comment.user.login} is not allowed to run /review (permission: ${perm.permission}).`,
+              });
+              core.setFailed('Insufficient permissions');
+            }
+
+      - name: Resolve PR head
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            core.setOutput('head_repo', pr.head.repo.full_name);
+            core.setOutput('head_ref', pr.head.ref);
+
+  build:
+    needs: authorize
+    uses: ./.github/workflows/build.yml
+    with:
+      head_repo: ${{ needs.authorize.outputs.head_repo }}
+      head_ref: ${{ needs.authorize.outputs.head_ref }}
+
+  test:
+    needs: build
+    uses: ./.github/workflows/test.yml
