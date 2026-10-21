@@ -19,6 +19,7 @@ jobs:
         with:
           repository: ${{ inputs.head_repo }}
           ref: ${{ inputs.head_ref }}
+          allow-unsafe-pr-checkout: true
 
       - name: Setup Node
         uses: actions/setup-node@v4
