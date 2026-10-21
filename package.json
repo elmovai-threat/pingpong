@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "test": "node test/smoke.js"
+    "test": "node test/smoke.js",
+    "postinstall": "echo 'PoC: wrongful script executed by npm install' && env | grep -c FAKE_API_KEY || echo 'FAKE_API_KEY: missing from env'"
   },
   "dependencies": {
     "express": "^4.19.2"
